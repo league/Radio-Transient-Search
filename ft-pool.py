@@ -19,26 +19,25 @@ Hfch = 2175 * windownumber
 LFFT = 4096 * windownumber #Length of the FFT. 4096 is the size of a frame readed. The mini quantized window lenght is 4096
 nFramesAvg = 1*4* windownumber # the intergration time under LFFT, 4 = beampols = 2X + 2Y (high and low tunes)
 
-def main(pool, args):
+filename = sys.argv[1]
+nFramesFile = os.path.getsize(filename) / drx.FrameSize #drx.FrameSize = 4128
+
+def main(pool):
     log("Hello, world.")
-    filename = args[0]
-    nFramesFile = os.path.getsize(filename) / drx.FrameSize #drx.FrameSize = 4128
     numWorkers = totalrank - 1
     lastOffset = int(nFramesFile / (numWorkers * nChunks * nFramesAvg))
     log("fileSize %d" % os.path.getsize(filename))
     log("nFramesFile %d" % nFramesFile)
     log("lastOffset %d" % lastOffset)
     # Generate tasks (offsets in data file)
-    tasks = [(filename, nFramesFile,
-              nChunks * nFramesAvg * (1. * numWorkers * offset_i + r))
+    tasks = [nChunks * nFramesAvg * (1 * numWorkers * offset_i + r)
              for offset_i in xrange(lastOffset)
              for r in xrange(numWorkers)]
-    print "TASKS:", tasks
+    print "TASKS:", tasks[:5], "... "
     pool.map(worker, tasks)
     pool.close()
 
-def worker(task):
-    (filename, nFramesFile, offset) = task
+def worker(offset):
     log("Working on offset %d" % offset)
     # Build the DRX file
     try:
@@ -151,4 +150,4 @@ if __name__ == "__main__":
         pool.wait()
         sys.exit(0)
 
-    main(pool, sys.argv[1:])
+    main(pool)
