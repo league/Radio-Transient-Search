@@ -33,7 +33,7 @@ def worker(task):
         log("Working on offset %d" % offset)
         # Build the DRX file
         try:
-                        fh = open(filename, "rb")
+            fh = open(filename, "rb")
         except:
             log("File not found: %s" % filename)
             sys.exit(1)
