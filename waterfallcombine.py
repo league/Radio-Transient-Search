@@ -15,4 +15,8 @@ sp = np.zeros((len(fn),np.load(fn[0]).shape[0],np.load(fn[0]).shape[1]))
 for i in range(len(fn)):
     sp[i,:,:]=np.load(fn[i])
 
-np.save('waterfall',Decimate(sp, sp.shape[0]/4000))
+np.save('waterfall',Decimate(sp, 1))
+# The 'ndown' parameter was sp.shape[0]/4000
+# where sp.shape[0] is usually around 5760, but it's an int, so
+# it just generates 1. This fixes a division-by-zero problem
+# when sp.shape[0] is much smaller.
