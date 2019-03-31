@@ -136,11 +136,11 @@ if __name__ == "__main__":
 
     for tuning in (0,1):
         sp[:,tuning,:][ np.where( ( abs(sp[:,tuning,:]) > 3.*sp[:,tuning,:].std()) )] = sp[:,tuning,:].mean()
-    cmap = 'Greys_r'   # Grey
-    #cmap = 'YlOrBr_r'
+    #cmap = 'Greys_r'   # Grey
+    cmap = 'YlGnBu'  # 'YlOrBr_r'
 
     #'''
-    plt.figure(figsize=(28,20))
+    plt.figure(figsize=(19,14))
     plt.imshow(sp[:,0,:].T, cmap=cmap, origin = 'low', aspect = 'auto')
     plt.suptitle(u"%sWF RFI %.3fσ Low" % (FILE_PREFIX, RFI_STD), fontsize = 30)
     plt.xlabel('Time',fontdict={'fontsize':16})
