@@ -11,10 +11,10 @@ nChunks = 3000 #the temporal shape of a file.
 
 #Low tuning frequency range
 Lfcl = 1000 * windownumber
-Lfch = 1350 * windownumber
+Lfch = 1315 * windownumber
 #High tuning frequency range
-Hfcl = 1825 * windownumber
-Hfch = 2175 * windownumber
+Hfcl = 1685 * windownumber
+Hfch = 2000 * windownumber
 
 LFFT = 4096 * windownumber #Length of the FFT. 4096 is the size of a frame readed. The mini quantized window lenght is 4096
 nFramesAvg = 1*4* windownumber # the intergration time under LFFT, 4 = beampols = 2X + 2Y (high and low tunes)
@@ -65,8 +65,8 @@ def worker(offset):
     beampols = tunepol
     if offset != 0:
         fh.seek(offset*drx.FrameSize, 1)
-    if nChunks == 0:
-        nChunks = 1
+    #if nChunks == 0:
+    #    nChunks = 1
     nFrames = nFramesAvg*nChunks
     centralFreq1 = 0.0
     centralFreq2 = 0.0
@@ -137,9 +137,9 @@ def worker(offset):
         # Calculate the spectra for this block of data, in the unit of intensity
         masterSpectra[i,0,:] = ((numpy.fft.fftshift(numpy.abs(numpy.fft.fft2(data[:2,:]))[:,1:])[:,Lfcl:Lfch])**2.).mean(0)/LFFT/2.
         masterSpectra[i,1,:] = ((numpy.fft.fftshift(numpy.abs(numpy.fft.fft2(data[2:,:]))[:,1:])[:,Hfcl:Hfch])**2.).mean(0)/LFFT/2.
-        # Save the results to the various master arrays
-        outname = "%s_%i_fft_offset_%.9i_frames" % (filename, beam,offset)
-        log("Writing %s" % outname)
+    # Save the results to the various master arrays
+    outname = "%s_%i_fft_offset_%.9i_frames" % (filename, beam,offset)
+    log("Writing %s" % outname)
     numpy.save(outname,masterSpectra)
 
 if __name__ == "__main__":
