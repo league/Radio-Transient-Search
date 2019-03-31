@@ -6,14 +6,6 @@ import os
 import time
 import sys
 import matplotlib
-# Force matplotlib to not use any Xwindows backend.
-matplotlib.use('Agg')
-
-import matplotlib.pyplot as plt
-
-
-RFI_STD = float(sys.argv[1]) if len(sys.argv) > 1 else 5.0
-FILE_PREFIX = sys.argv[2]+"-" if len(sys.argv) > 2 else ""
 
 def savitzky_golay(y, window_size, order, deriv=0):
     """Smooth (and optionally differentiate) data with a Savitzky-Golay filter
@@ -110,55 +102,63 @@ def snr(a):
     return (a-a.mean() )/a.std()
 
 
-sp = np.load('waterfall.npy')
-#bandpass
-bp = 0.*sp[0,:,:]
-#baseline
-bl = 0.*sp[:,:,0]
-bp[:,:]= np.median(sp, 0)
-bp[0,] = savitzky_golay(bp[0,],151,2)
-bp[1,] = savitzky_golay(bp[1,],111,2)
-#correct the bandpass
-for tuning in (0,1):
-    sp[:,tuning,:] = sp[:,tuning,:]-bp[tuning,]
-bl[:,:]= np.median(sp, 2)
-bl[:,0] = savitzky_golay(bl[:,0],151,2)
-bl[:,1] = savitzky_golay(bl[:,1],151,2)
-#correct the baseline
-for tuning in (0,1):
-    sp[:,tuning,:] = (sp[:,tuning,:].T - bl[:,tuning].T).T
+if __name__ == "__main__":
+    # Force matplotlib to not use any Xwindows backend.
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
 
-for tuning in (0,1):
-    sp[:,tuning,:] = RFI(sp[:,tuning,:], RFI_STD * sp[:,tuning,:].std())
+    RFI_STD = float(sys.argv[1]) if len(sys.argv) > 1 else 5.0
+    FILE_PREFIX = sys.argv[2]+"-" if len(sys.argv) > 2 else ""
 
-for tuning in (0,1):
-    sp[:,tuning,:] = snr(sp[:,tuning,:])
+    sp = np.load('waterfall.npy')
+    #bandpass
+    bp = 0.*sp[0,:,:]
+    #baseline
+    bl = 0.*sp[:,:,0]
+    bp[:,:]= np.median(sp, 0)
+    bp[0,] = savitzky_golay(bp[0,],151,2)
+    bp[1,] = savitzky_golay(bp[1,],111,2)
+    #correct the bandpass
+    for tuning in (0,1):
+        sp[:,tuning,:] = sp[:,tuning,:]-bp[tuning,]
+    bl[:,:]= np.median(sp, 2)
+    bl[:,0] = savitzky_golay(bl[:,0],151,2)
+    bl[:,1] = savitzky_golay(bl[:,1],151,2)
+    #correct the baseline
+    for tuning in (0,1):
+        sp[:,tuning,:] = (sp[:,tuning,:].T - bl[:,tuning].T).T
 
-for tuning in (0,1):
-    sp[:,tuning,:][ np.where( ( abs(sp[:,tuning,:]) > 3.*sp[:,tuning,:].std()) )] = sp[:,tuning,:].mean()
+    for tuning in (0,1):
+        sp[:,tuning,:] = RFI(sp[:,tuning,:], RFI_STD * sp[:,tuning,:].std())
 
-cmap = 'Greys_r'   # Grey
-#cmap = 'YlOrBr_r'
+    for tuning in (0,1):
+        sp[:,tuning,:] = snr(sp[:,tuning,:])
 
-#'''
-plt.imshow(sp[:,0,:].T, cmap=cmap, origin = 'low', aspect = 'auto')
-plt.suptitle(u"%sWF RFI %.3fσ Low" % (FILE_PREFIX, RFI_STD), fontsize = 30)
-plt.xlabel('Time',fontdict={'fontsize':16})
-plt.ylabel('Frequency',fontdict={'fontsize':14})
-plt.colorbar().set_label('std',size=18)
-#plt.show()
-filename = '%swaterfall-%.3fsigma-low.png' % (FILE_PREFIX, RFI_STD)
-print "Writing", filename
-plt.savefig(filename)
-#'''
-plt.clf()
+    for tuning in (0,1):
+        sp[:,tuning,:][ np.where( ( abs(sp[:,tuning,:]) > 3.*sp[:,tuning,:].std()) )] = sp[:,tuning,:].mean()
+    cmap = 'Greys_r'   # Grey
+    #cmap = 'YlOrBr_r'
 
-plt.imshow(sp[:,1,:].T, cmap=cmap, origin = 'low', aspect = 'auto')
-plt.suptitle(u'%sWF RFI %.3fσ High' % (FILE_PREFIX, RFI_STD), fontsize = 30)
-plt.xlabel('Time',fontdict={'fontsize':16})
-plt.ylabel('Frequency',fontdict={'fontsize':14})
-plt.colorbar().set_label('std',size=18)
-#plt.show()
-filename = '%swaterfall-%.3fsigma-high.png' % (FILE_PREFIX, RFI_STD)
-print "Writing", filename
-plt.savefig(filename)
+    #'''
+    plt.figure(figsize=(28,20))
+    plt.imshow(sp[:,0,:].T, cmap=cmap, origin = 'low', aspect = 'auto')
+    plt.suptitle(u"%sWF RFI %.3fσ Low" % (FILE_PREFIX, RFI_STD), fontsize = 30)
+    plt.xlabel('Time',fontdict={'fontsize':16})
+    plt.ylabel('Frequency',fontdict={'fontsize':14})
+    plt.colorbar().set_label('std',size=18)
+    #plt.show()
+    filename = '%swaterfall-%.3fsigma-low.png' % (FILE_PREFIX, RFI_STD)
+    print "Writing", filename
+    plt.savefig(filename)
+    #'''
+    plt.clf()
+
+    plt.imshow(sp[:,1,:].T, cmap=cmap, origin = 'low', aspect = 'auto')
+    plt.suptitle(u'%sWF RFI %.3fσ High' % (FILE_PREFIX, RFI_STD), fontsize = 30)
+    plt.xlabel('Time',fontdict={'fontsize':16})
+    plt.ylabel('Frequency',fontdict={'fontsize':14})
+    plt.colorbar().set_label('std',size=18)
+    #plt.show()
+    filename = '%swaterfall-%.3fsigma-high.png' % (FILE_PREFIX, RFI_STD)
+    print "Writing", filename
+    plt.savefig(filename)
