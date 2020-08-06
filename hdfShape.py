@@ -2,9 +2,20 @@
 import numpy
 import h5py
 import sys
+from datetime import datetime
 
 def show_shape(name, arr, fill=''):
-    print("%s%s: %s %s" % (fill, name, arr.shape, arr.dtype))
+    if name.endswith('time'):
+        extra = ("; interval %0.3f ms; start %s" %
+                 ((arr[1]-arr[0])*1e3,
+                  datetime.utcfromtimestamp(arr[0])))
+    elif name.endswith('freq'):
+        extra = ("; interval %.3f kHz; median %.1f MHz" %
+                 ((arr[1]-arr[0])/1e3,
+                  numpy.median(arr)/1e6))
+    else:
+        extra = ""
+    print("%s%s: %s %s%s" % (fill, name, arr.shape, arr.dtype, extra))
 
 def show_h5_recur(f, fill='  '):
     for k in f.keys():
