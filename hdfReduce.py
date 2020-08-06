@@ -28,8 +28,10 @@ parser.add_argument('-o', '--output', metavar='FILENAME',
 
 def reduce_dataset(k, obj):
     if isinstance(obj, h5py.Dataset):
+        func = numpy.mean
         if k.endswith('time'):
             block_size = (args.time,)
+            func = numpy.min
         elif k.endswith('freq'):
             block_size = (args.frequency,)
         elif k.endswith('Saturation'):
@@ -43,7 +45,7 @@ def reduce_dataset(k, obj):
             return
 
         print("%s: %s..." % (k, obj.shape))
-        r = block_reduce(obj, block_size=block_size, func=numpy.mean)
+        r = block_reduce(obj, block_size=block_size, func=func)
         print("  -> %s" % (r.shape,))
         out = outfile.create_dataset(k, r.shape, dtype=obj.dtype, compression='gzip')
         out[...] = r[...]

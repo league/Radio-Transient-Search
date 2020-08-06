@@ -7,7 +7,7 @@ from datetime import datetime
 def show_shape(name, arr, fill=''):
     if name.endswith('time'):
         extra = ("; interval %0.3f ms; start %s" %
-                 ((arr[1]-arr[0])*1e3,
+                 (numpy.median(arr[1:] - arr[:-1])*1e3,
                   datetime.utcfromtimestamp(arr[0])))
     elif name.endswith('freq'):
         extra = ("; interval %.3f kHz; median %.1f MHz" %
