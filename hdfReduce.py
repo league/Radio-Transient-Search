@@ -27,6 +27,15 @@ parser.add_argument('-o', '--output', metavar='FILENAME',
                     help='Output filename (default adds "%s")' % DEFAULT_OUTPUT_SUFFIX)
 
 def reduce_dataset(k, obj):
+    if isinstance(obj, h5py.Group):
+        out = outfile.create_group(k)
+        for a in obj.attrs:
+            if a in ['LFFT', 'nChan']:
+                out.attrs[a] = obj.attrs[a] / args.frequency
+            elif a in ['tInt']:
+                out.attrs[a] = obj.attrs[a] * args.time
+            else:
+                out.attrs[a] = obj.attrs[a]
     if isinstance(obj, h5py.Dataset):
         func = numpy.mean
         if k.endswith('time'):
@@ -36,6 +45,9 @@ def reduce_dataset(k, obj):
             block_size = (args.frequency,)
         elif k.endswith('Saturation'):
             block_size = (args.time, 1)
+        elif k.endswith('Mask/XX') or k.endswith('Mask/YY'):
+            print("%s: dropping Mask" % k)
+            return
         elif k.endswith('XX') or k.endswith('YY'):
             block_size = (args.time, args.frequency)
         else:
@@ -49,6 +61,8 @@ def reduce_dataset(k, obj):
         print("  -> %s" % (r.shape,))
         out = outfile.create_dataset(k, r.shape, dtype=obj.dtype, compression='gzip')
         out[...] = r[...]
+        for a in obj.attrs:
+            out.attrs[a] = obj.attrs[a]
         
 def main():
     if args.output is None:
