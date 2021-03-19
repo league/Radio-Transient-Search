@@ -21,7 +21,9 @@ def pluralize(num, noun1, noun2):
         return str(num) + ' ' + noun2
 
 def show_shape(name, arr, fill=''):
-    extra = '; ' + pluralize(len(arr.attrs), 'attr', 'attrs')
+    extra = ''
+    if hasattr(arr, 'attrs'):
+        extra += '; ' + pluralize(len(arr.attrs), 'attr', 'attrs')
     if name.endswith('time'):
         extra += ('; interval %0.3f ms; start %s' %
                   (numpy.median(arr[1:] - arr[:-1])*1e3,
